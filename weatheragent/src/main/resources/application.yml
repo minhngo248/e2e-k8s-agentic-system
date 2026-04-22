@@ -1,0 +1,10 @@
+spring:
+  application:
+    name: mcpserverweather
+  ai:
+    mcp:
+      server:
+        name: mcp-weather-server
+        version: 0.0.1
+server:
+  port: 8082

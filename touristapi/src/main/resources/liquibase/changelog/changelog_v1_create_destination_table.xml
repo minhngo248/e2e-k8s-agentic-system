@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.1.xsd">
+
+    <changeSet id="1" author="minh.ngo">
+        <createTable tableName="destinations">
+            <column name="id" type="uuid" />
+            <column name="created_at" type="TIMESTAMP WITH TIME ZONE"/>
+            <column name="updated_at" type="TIMESTAMP WITH TIME ZONE"/>
+            <column name="name" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="varchar(255)" />
+            <column name="types" type="jsonb"/>
+
+            <column name="detail_address" type="varchar(500)"/>
+            <column name="city" type="varchar(100)"/>
+            <column name="postal_code" type="varchar(20)"/>
+            <column name="region" type="varchar(100)"/>
+            <column name="country" type="varchar(100)"/>
+            <column name="country_code" type="varchar(10)"/>
+            <column name="longitude" type="double precision"/>
+            <column name="latitude" type="double precision"/>
+            <column name="url_images" type="jsonb">
+                <constraints nullable="true"/>
+            </column>
+        </createTable>
+        <addPrimaryKey tableName="destinations" columnNames="id"/>
+    </changeSet>
+</databaseChangeLog>
