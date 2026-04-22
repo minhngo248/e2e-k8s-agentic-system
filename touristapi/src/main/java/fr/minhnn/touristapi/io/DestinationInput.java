@@ -1,5 +1,7 @@
 package fr.minhnn.touristapi.io;
 
+import fr.minhnn.touristapi.exceptions.BadRequestException;
+
 import java.util.List;
 
 public record DestinationInput(
@@ -15,19 +17,19 @@ public record DestinationInput(
 ) {
     public DestinationInput {
         if (name == null || name.isBlank()) {
-            throw new IllegalArgumentException("Name is required");
+            throw new BadRequestException("Name is required");
         }
         if (types == null || types.isEmpty()) {
-            throw new IllegalArgumentException("At least one destination type is required");
+            throw new BadRequestException("At least one destination type is required");
         }
         if (detailAddress == null || detailAddress.isBlank()) {
-            throw new IllegalArgumentException("Detail address is required");
+            throw new BadRequestException("Detail address is required");
         }
         if (city == null || city.isBlank()) {
-            throw new IllegalArgumentException("City is required");
+            throw new BadRequestException("City is required");
         }
         if (country == null || country.isBlank()) {
-            throw new IllegalArgumentException("Country is required");
+            throw new BadRequestException("Country is required");
         }
     }
 }

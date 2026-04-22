@@ -46,7 +46,7 @@ public class TouristAgentApplication {
 
         return new AgentCard.Builder().name("Tourist Agent")
                 .description("An agent that provides tourist destination recommendations based on user preferences and location.")
-                .url("http://localhost:" + port + contextPath + "/")
+                .url("http://localhost:" + port + contextPath)
                 .version("1.0.0")
                 .capabilities(new AgentCapabilities.Builder().streaming(false).pushNotifications(true).build())
                 .defaultInputModes(List.of("text", "text/plain"))

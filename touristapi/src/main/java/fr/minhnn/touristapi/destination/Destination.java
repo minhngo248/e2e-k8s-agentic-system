@@ -1,5 +1,6 @@
 package fr.minhnn.touristapi.destination;
 
+import fr.minhnn.touristapi.exceptions.BadRequestException;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
@@ -131,7 +132,7 @@ public class Destination {
                     return type;
                 }
             }
-            throw new IllegalArgumentException("Unknown DestinationType label: " + label);
+            throw new BadRequestException("Unknown DestinationType label: " + label);
         }
     }
 

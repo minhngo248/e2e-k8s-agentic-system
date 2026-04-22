@@ -19,10 +19,10 @@ class TouristTool {
 
     /**
      * Find tourist destinations by types and location.
-     * @param types a list of destination types (e.g., "Beach",
+     * @param types a list of destination types (Here are existing types: "Beach",
      *         "Mountain",
      *         "City",
-     *         Historical",
+     *         "Historical",
      *         "Cultural",
      *         "Adventure",
      *         "Nature",
