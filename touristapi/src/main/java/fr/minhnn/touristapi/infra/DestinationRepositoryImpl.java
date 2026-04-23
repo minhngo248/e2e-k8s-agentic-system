@@ -5,6 +5,7 @@ import fr.minhnn.touristapi.destination.DestinationManagement;
 import fr.minhnn.touristapi.destination.DestinationRepository;
 import fr.minhnn.touristapi.exceptions.BadRequestException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.springframework.jdbc.core.simple.JdbcClient;
@@ -22,6 +23,7 @@ import java.util.stream.Collectors;
 
 @Repository
 @RequiredArgsConstructor
+@Log4j2
 public class DestinationRepositoryImpl implements DestinationRepository {
     private final JdbcClient jdbcClient;
     private final JsonMapper jsonMapper;
@@ -133,6 +135,7 @@ public class DestinationRepositoryImpl implements DestinationRepository {
         try {
             return jsonMapper.writeValueAsString(urlImages);
         } catch (JacksonException e) {
+            log.error("Failed to convert URL images list to JSON", e);
             throw new BadRequestException("Failed to convert list to JSON");
         }
     }
@@ -144,6 +147,7 @@ public class DestinationRepositoryImpl implements DestinationRepository {
                     .collect(Collectors.toList());
             return jsonMapper.writeValueAsString(typeNames);
         } catch (JacksonException e) {
+            log.error("Failed to convert destination types list to JSON", e);
             throw new BadRequestException("Failed to convert types to JSON");
         }
     }
@@ -167,6 +171,7 @@ public class DestinationRepositoryImpl implements DestinationRepository {
             DestinationManagement.addImages(destination, parseUrlImagesFromJson(rs.getString("url_images")));
             return destination;
         } catch (Exception e) {
+            log.error("Failed to map ResultSet to Destination", e);
             throw new BadRequestException("Failed to map ResultSet to Destination");
         }
     }
@@ -178,6 +183,7 @@ public class DestinationRepositoryImpl implements DestinationRepository {
         try {
             return jsonMapper.readValue(urlImages, new TypeReference<List<String>>() {});
         } catch (JacksonException e) {
+            log.error("Failed to convert image URLs JSON to a list", e);
             throw new BadRequestException("Failed to convert image URLs JSON to a list");
         }
     }
@@ -192,6 +198,7 @@ public class DestinationRepositoryImpl implements DestinationRepository {
                     .map(Destination.DestinationType::valueOf)
                     .collect(Collectors.toList());
         } catch (JacksonException e) {
+            log.error("Failed to parse destination types from JSON", e);
             throw new BadRequestException("Failed to parse destination types from JSON");
         }
     }

@@ -7,7 +7,7 @@ def stream_from_spring(prompt: str):
     headers = {"Accept": "text/event-stream", "Content-Type": "application/json"}
 
     # Get orchestrator URL from environment variable, default to localhost if not set
-    orchestrator_url = os.getenv("ORCHESTRATOR_URL", "http://localhost:8081")
+    orchestrator_url = os.getenv("ORCHESTRATOR_URL", "http://localhost:8083")
 
     with httpx.stream(
         "POST",

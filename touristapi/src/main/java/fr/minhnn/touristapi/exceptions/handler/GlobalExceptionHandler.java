@@ -29,7 +29,7 @@ public class GlobalExceptionHandler {
         String message = messageSource.getMessage("exception.not_found", new Object[]{ex.getMessage()}, LocaleContextHolder.getLocale());
         List<String> messages = new ArrayList<>();
         messages.add(message);
-        return ResponseEntity.notFound().build();
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(messages);
     }
 
 
@@ -38,7 +38,7 @@ public class GlobalExceptionHandler {
         String message = ex.getMessage();
         List<String> messages = new ArrayList<>();
         messages.add(message);
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(messages);
     }
 
 
@@ -47,7 +47,7 @@ public class GlobalExceptionHandler {
         List<String> messages = new ArrayList<>();
         String message = ex.getMessage();
         messages.add(message);
-        return ResponseEntity.badRequest().build();
+        return ResponseEntity.badRequest().body(messages);
     }
 
 
@@ -56,7 +56,7 @@ public class GlobalExceptionHandler {
         List<String> messages = new ArrayList<>();
         String message = ex.getMessage();
         messages.add(message);
-        return ResponseEntity.badRequest().build();
+        return ResponseEntity.badRequest().body(messages);
     }
 
     @ExceptionHandler(value = {BindException.class})
@@ -70,6 +70,6 @@ public class GlobalExceptionHandler {
                 errors.add(messageSource.getMessage("exception.general", null, LocaleContextHolder.getLocale()));
             }
         }
-        return ResponseEntity.badRequest().build();
+        return ResponseEntity.badRequest().body(errors);
     }
 }

@@ -123,24 +123,29 @@ public class S3ServiceImpl implements S3Service {
 
     private void validateImages(List<MultipartFile> files) {
         if (files == null || files.isEmpty()) {
+            log.error("No images provided for upload");
             throw new BadRequestException("At least 1 image is required");
         }
 
         if (files.size() > 5) {
+            log.error("Too many images provided: {}. Maximum allowed is 5", files.size());
             throw new BadRequestException("Maximum 5 images allowed");
         }
 
         for (MultipartFile file : files) {
             if (file.isEmpty()) {
+                log.error("Empty file provided: {}", file.getOriginalFilename());
                 throw new BadRequestException("Empty file is not allowed");
             }
 
             if (file.getSize() > MAX_FILE_SIZE) {
+                log.error("File size exceeds limit: {} ({} bytes)", file.getOriginalFilename(), file.getSize());
                 throw new BadRequestException("File size must not exceed 5MB: " + file.getOriginalFilename());
             }
 
             String contentType = file.getContentType();
             if (!ALLOWED_CONTENT_TYPES.contains(contentType)) {
+                log.error("Invalid file type: {} ({}). Allowed types are: {}", file.getOriginalFilename(), contentType, ALLOWED_CONTENT_TYPES);
                 throw new BadRequestException("Invalid file type. Only JPEG, PNG, WEBP are allowed: " + file.getOriginalFilename());
             }
         }
@@ -157,6 +162,7 @@ public class S3ServiceImpl implements S3Service {
         // Extract key from URL: https://bucket.s3.region.amazonaws.com/folder/file.jpg -> folder/file.jpg
         String[] parts = imageUrl.split(".amazonaws.com/");
         if (parts.length < 2) {
+            log.error("Invalid S3 URL format: {}", imageUrl);
             throw new BadRequestException("Invalid S3 URL: " + imageUrl);
         }
         return parts[1];

@@ -1,6 +1,7 @@
 package fr.minhnn.touristapi.infra;
 
 import fr.minhnn.touristapi.destination.Destination;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayInputStream;
@@ -35,6 +36,7 @@ public class MultipartFileAdapter {
     }
 }
 
+@Log4j2
 class InMemoryMultipartFile implements MultipartFile {
     private final String fileName;
     private final byte[] content;
@@ -83,6 +85,7 @@ class InMemoryMultipartFile implements MultipartFile {
 
     @Override
     public void transferTo(File dest) {
+        log.error("transferTo not supported for in-memory file");
         throw new UnsupportedOperationException("transferTo not supported for in-memory file");
     }
 }

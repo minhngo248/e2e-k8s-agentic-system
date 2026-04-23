@@ -30,4 +30,22 @@ public class LoggingAspect {
             throw e;
         }
     }
+
+    @Around("execution(* fr.minhnn.touristapi.destination..*(..))")
+    public Object logDestination(ProceedingJoinPoint joinPoint) throws Throwable {
+        String className = joinPoint.getTarget().getClass().getSimpleName();
+        String methodName = joinPoint.getSignature().getName();
+        Object[] args = joinPoint.getArgs();
+
+        log.info("Executing {}.{}() with args: {}", className, methodName, Arrays.toString(args));
+
+        try {
+            Object result = joinPoint.proceed();
+            log.info("Successfully executed {}.{}()", className, methodName);
+            return result;
+        } catch (Exception e) {
+            log.error("Error executing {}.{}(): {}", className, methodName, e.getMessage(), e);
+            throw e;
+        }
+    }
 }

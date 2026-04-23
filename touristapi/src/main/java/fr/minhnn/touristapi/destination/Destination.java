@@ -2,6 +2,7 @@ package fr.minhnn.touristapi.destination;
 
 import fr.minhnn.touristapi.exceptions.BadRequestException;
 import lombok.Getter;
+import lombok.extern.log4j.Log4j2;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -9,6 +10,7 @@ import java.util.Objects;
 import java.util.UUID;
 
 @Getter
+@Log4j2
 public class Destination {
     private final DestinationIdentifier id;
     private String name;
@@ -132,6 +134,7 @@ public class Destination {
                     return type;
                 }
             }
+            log.error("Unknown DestinationType label: {}", label);
             throw new BadRequestException("Unknown DestinationType label: " + label);
         }
     }
