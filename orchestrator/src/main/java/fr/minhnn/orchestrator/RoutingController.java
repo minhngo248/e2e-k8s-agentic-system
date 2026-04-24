@@ -26,10 +26,13 @@ public class RoutingController {
         String userMessage = request.get("message");
         log.info("Received user message: {}", userMessage);
 
-        return this.chatClient.prompt()
+        Flux<String> contentFlux = this.chatClient.prompt()
                 .user(userMessage)
                 .stream()
                 .content()
+                .cache();
+
+        return contentFlux
                 .map(chunk -> ServerSentEvent.<String>builder().data(chunk).build())
                 .doOnComplete(() -> log.info("Streaming completed for message: {}", userMessage))
                 .doOnError(error -> log.error("Error during streaming: {}", error.getMessage()));

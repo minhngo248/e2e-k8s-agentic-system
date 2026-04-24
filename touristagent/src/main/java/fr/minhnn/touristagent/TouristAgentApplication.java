@@ -29,8 +29,8 @@ public class TouristAgentApplication {
             
             The API returns a list of tourist destinations that match the specified types and are located within the specified radius from the given latitude and longitude.
             
-            When a user asks for recommendations, you should ask them about their preferences (e.g., types of destinations they like) and their current location (latitude and longitude).
-            Then, you should query the API with the appropriate parameters and return a list of recommended tourist destinations to the user.
+            Responses must be in Markdown human-readable format. If the user query is ambiguous, use your best judgment to determine the most likely intent and provide a relevant
+            response based on the available API.
             """;
 
     private final RestClient restClient;
@@ -48,9 +48,9 @@ public class TouristAgentApplication {
                 .description("An agent that provides tourist destination recommendations based on user preferences and location.")
                 .url("http://localhost:" + port + contextPath)
                 .version("1.0.0")
-                .capabilities(new AgentCapabilities.Builder().streaming(false).pushNotifications(true).build())
-                .defaultInputModes(List.of("text", "text/plain"))
-                .defaultOutputModes(List.of("text", "text/plain"))
+                .capabilities(new AgentCapabilities.Builder().streaming(false).build())
+                .defaultInputModes(List.of("text"))
+                .defaultOutputModes(List.of("text"))
                 .skills(List.of(new AgentSkill.Builder().id("tourist_destination_search")
                         .name("Tourist Destination Search")
                         .description("Search for tourist destinations based on user preferences and location.")

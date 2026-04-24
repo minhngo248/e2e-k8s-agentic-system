@@ -59,7 +59,7 @@ public class RemoteAgentConnections {
                               @ToolParam(
                                       description = "The comprehensive task description and context to send to the agent") String task) {
 
-        log.info("Sending message to agent '{}': {}", agentName, task);
+        log.info("Sending message to agent '{}'", agentName);
 
         AgentCard agentCard = this.cards.get(agentName);
         if (agentCard == null) {
@@ -111,7 +111,7 @@ public class RemoteAgentConnections {
             client.sendMessage(message);
 
             // Wait for response (with timeout)
-            String result = responseFuture.get(60, java.util.concurrent.TimeUnit.SECONDS);
+            String result = responseFuture.get(180, java.util.concurrent.TimeUnit.SECONDS);
             log.info("Agent '{}' response: {}", agentName, result);
             return result;
         }

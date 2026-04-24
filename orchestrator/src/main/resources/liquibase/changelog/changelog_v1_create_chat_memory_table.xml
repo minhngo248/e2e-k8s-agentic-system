@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.1.xsd">
+
+    <changeSet id="create-chat-memory-table" author="minh.ngo">
+
+        <createTable tableName="SPRING_AI_CHAT_MEMORY">
+            <column name="id" type="SERIAL">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+
+            <column name="conversation_id" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="content" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="type" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="timestamp" type="TIMESTAMPTZ" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createIndex
+                indexName="idx_chat_memory_conversation_id"
+                tableName="SPRING_AI_CHAT_MEMORY">
+            <column name="conversation_id"/>
+        </createIndex>
+
+    </changeSet>
+</databaseChangeLog>

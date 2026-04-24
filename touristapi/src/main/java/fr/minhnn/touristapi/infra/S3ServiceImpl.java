@@ -1,5 +1,6 @@
 package fr.minhnn.touristapi.infra;
 
+import fr.minhnn.touristapi.config.S3Properties;
 import fr.minhnn.touristapi.destination.Destination;
 import fr.minhnn.touristapi.destination.S3Service;
 import fr.minhnn.touristapi.exceptions.BadRequestException;
@@ -10,6 +11,7 @@ import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
@@ -25,13 +27,12 @@ import java.util.UUID;
 @Log4j2
 public class S3ServiceImpl implements S3Service {
     private final S3Client s3Client;
+    private final S3Properties s3Properties;
 
     private static final List<String> ALLOWED_CONTENT_TYPES = Arrays.asList(
             "image/jpeg", "image/jpg", "image/png", "image/webp"
     );
     private static final long MAX_FILE_SIZE = 5 * 1024 * 1024L; // 5MB
-    private static final String BUCKET_NAME = "tourist-images";
-    private static final String REGION = "eu-west-3";
 
     @Override
     public List<String> uploadImages(List<Destination.ImageFile> files, String folder) {
@@ -81,7 +82,7 @@ public class S3ServiceImpl implements S3Service {
         String key = folder + "/" + fileName;
 
         PutObjectRequest putObjectRequest = PutObjectRequest.builder()
-                .bucket(BUCKET_NAME)
+                .bucket(s3Properties.getBucketName())
                 .key(key)
                 .contentType(file.getContentType())
                 .build();
@@ -89,8 +90,8 @@ public class S3ServiceImpl implements S3Service {
         s3Client.putObject(putObjectRequest, RequestBody.fromBytes(file.getBytes()));
 
         String url = String.format("https://%s.s3.%s.amazonaws.com/%s",
-                BUCKET_NAME,
-                REGION,
+                s3Properties.getBucketName(),
+                Region.of(s3Properties.getRegion()),
                 key);
 
         log.info("Uploaded image to S3: {}", url);
@@ -102,7 +103,7 @@ public class S3ServiceImpl implements S3Service {
         try {
             String key = extractKeyFromUrl(imageUrl);
             DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder()
-                    .bucket(BUCKET_NAME)
+                    .bucket(s3Properties.getBucketName())
                     .key(key)
                     .build();
 
