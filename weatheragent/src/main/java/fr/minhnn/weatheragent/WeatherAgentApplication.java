@@ -3,9 +3,7 @@ package fr.minhnn.weatheragent;
 import java.util.List;
 
 import io.a2a.server.agentexecution.AgentExecutor;
-import io.a2a.spec.AgentCapabilities;
-import io.a2a.spec.AgentCard;
-import io.a2a.spec.AgentSkill;
+import io.a2a.spec.*;
 import org.springaicommunity.a2a.server.executor.DefaultAgentExecutor;
 
 import org.springframework.ai.chat.client.ChatClient;
@@ -37,7 +35,10 @@ public class WeatherAgentApplication {
                 .description("Helps with weather")
                 .url("http://localhost:" + port + contextPath)
                 .version("1.0.0")
-                .capabilities(new AgentCapabilities.Builder().streaming(false).build())
+                .capabilities(new AgentCapabilities.Builder()
+                        .streaming(false)
+                        .build()
+                )
                 .defaultInputModes(List.of("text"))
                 .defaultOutputModes(List.of("text"))
                 .skills(List.of(new AgentSkill.Builder().id("weather_search")

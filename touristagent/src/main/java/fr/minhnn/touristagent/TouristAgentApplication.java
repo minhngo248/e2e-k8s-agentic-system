@@ -2,9 +2,7 @@ package fr.minhnn.touristagent;
 
 import fr.minhnn.touristagent.config.TouristApiProperties;
 import io.a2a.server.agentexecution.AgentExecutor;
-import io.a2a.spec.AgentCapabilities;
-import io.a2a.spec.AgentCard;
-import io.a2a.spec.AgentSkill;
+import io.a2a.spec.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springaicommunity.a2a.server.executor.DefaultAgentExecutor;
@@ -48,7 +46,10 @@ public class TouristAgentApplication {
                 .description("An agent that provides tourist destination recommendations based on user preferences and location.")
                 .url("http://localhost:" + port + contextPath)
                 .version("1.0.0")
-                .capabilities(new AgentCapabilities.Builder().streaming(false).build())
+                .capabilities(new AgentCapabilities.Builder()
+                        .streaming(false)
+                        .build()
+                )
                 .defaultInputModes(List.of("text"))
                 .defaultOutputModes(List.of("text"))
                 .skills(List.of(new AgentSkill.Builder().id("tourist_destination_search")
@@ -70,7 +71,11 @@ public class TouristAgentApplication {
 
         return new DefaultAgentExecutor(chatClient, (chat, requestContext) -> {
             String userMessage = DefaultAgentExecutor.extractTextFromMessage(requestContext.getMessage());
-            return chat.prompt().tools(new TouristTool(restClient, touristApiProperties)).user(userMessage).call().content();
+            return chat.prompt()
+                    .tools(new TouristTool(restClient, touristApiProperties))
+                    .user(userMessage)
+                    .call()
+                    .content();
         });
     }
 }

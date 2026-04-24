@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 @Service
@@ -77,27 +78,35 @@ public class RemoteAgentConnections {
             CompletableFuture<String> responseFuture = new CompletableFuture<>();
             AtomicReference<String> responseText = new AtomicReference<>("");
 
-            BiConsumer<ClientEvent, AgentCard> consumer = (event, card) -> {
-                if (event instanceof TaskEvent taskEvent) {
-                    Task completedTask = taskEvent.getTask();
-                    log.info("Received task response: status={}", completedTask.getStatus().state());
+            List<BiConsumer<ClientEvent, AgentCard>> consumers = List.of(
+                    (event, card) -> {
+                        if (event instanceof TaskEvent taskEvent) {
+                            Task completedTask = taskEvent.getTask();
+                            log.info("Received task response: status={}", completedTask.getStatus().state());
 
-                    // Extract text from artifacts
-                    if (completedTask.getArtifacts() != null) {
-                        StringBuilder sb = new StringBuilder();
-                        for (Artifact artifact : completedTask.getArtifacts()) {
-                            if (artifact.parts() != null) {
-                                for (Part<?> part : artifact.parts()) {
-                                    if (part instanceof TextPart textPart) {
-                                        sb.append(textPart.getText());
+                            // Extract text from artifacts
+                            if (completedTask.getArtifacts() != null) {
+                                StringBuilder sb = new StringBuilder();
+                                for (Artifact artifact : completedTask.getArtifacts()) {
+                                    if (artifact.parts() != null) {
+                                        for (Part<?> part : artifact.parts()) {
+                                            if (part instanceof TextPart textPart) {
+                                                sb.append(textPart.getText());
+                                            }
+                                        }
                                     }
                                 }
+                                responseText.set(sb.toString());
                             }
+                            responseFuture.complete(responseText.get());
                         }
-                        responseText.set(sb.toString());
                     }
-                    responseFuture.complete(responseText.get());
-                }
+            );
+
+            // Create a handler that will be used for any errors that occur during streaming
+            Consumer<Throwable> errorHandler = error -> {
+                log.error("Error during communication with agent '{}': {}", agentName, error.getMessage());
+                responseFuture.completeExceptionally(error);
             };
 
             // Create client with consumer via builder
@@ -105,7 +114,8 @@ public class RemoteAgentConnections {
             Client client = Client.builder(agentCard)
                     .clientConfig(clientConfig)
                     .withTransport(JSONRPCTransport.class, new JSONRPCTransportConfig())
-                    .addConsumers(List.of(consumer))
+                    .addConsumers(consumers)
+                    .streamingErrorHandler(errorHandler)
                     .build();
 
             client.sendMessage(message);
