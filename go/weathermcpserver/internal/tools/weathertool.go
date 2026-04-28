@@ -11,27 +11,31 @@ import (
 )
 
 func init() {
-	registerTool(MCPTool[WeatherToolParams, ListWeatherToolResult]{
+	registerTool(WeatherTool())
+}
+
+func WeatherTool() MCPTool[WeatherToolParams, ListWeatherToolResult] {
+	return MCPTool[WeatherToolParams, ListWeatherToolResult]{
 		Name:        "weathertool",
 		Description: "Get weather forecast for a location given latitude and longitude coordinates",
 		Handler: func(ctx context.Context, cc *mcp.ServerSession, params *mcp.CallToolParamsFor[WeatherToolParams]) (*mcp.CallToolResultFor[ListWeatherToolResult], error) {
 			result := runWeatherTool(params.Arguments)
 
-			// Serialize results to JSON string
-			jsonData, err := json.Marshal(result)
-			if err != nil {
-				return nil, fmt.Errorf("failed to marshal weather results: %w", err)
+			weatherMessage := fmt.Sprintf("Weather forecast for latitude %.2f and longitude %.2f for the next %d days:\n", params.Arguments.Latitude, params.Arguments.Longitude, params.Arguments.Days)
+			for _, forecast := range result.Results {
+				weatherMessage += fmt.Sprintf("- Date: %s, Max Temp: %.1f°C, Min Temp: %.1f°C, Weather Code: %d\n",
+					forecast.Date, forecast.MaxTemp, forecast.MinTemp, forecast.WeatherCode)
 			}
-
 			return &mcp.CallToolResultFor[ListWeatherToolResult]{
+				StructuredContent: result,
 				Content: []mcp.Content{
 					&mcp.TextContent{
-						Text: string(jsonData),
+						Text: weatherMessage,
 					},
 				},
 			}, nil
 		},
-	})
+	}
 }
 
 // define your input/output schemas here
@@ -67,6 +71,8 @@ type DailyData struct {
 }
 
 func runWeatherTool(args WeatherToolParams) ListWeatherToolResult {
+	emptyResult := ListWeatherToolResult{Results: make([]*WeatherToolResult, 0)}
+
 	// Call API Open Meteo
 	apiURL := fmt.Sprintf("https://api.open-meteo.com/v1/forecast?latitude=%f&longitude=%f&daily=temperature_2m_max,temperature_2m_min,weather_code&past_days=0&forecast_days=%d",
 		args.Latitude, args.Longitude, args.Days)
@@ -74,20 +80,20 @@ func runWeatherTool(args WeatherToolParams) ListWeatherToolResult {
 	// Make HTTP GET request
 	resp, err := http.Get(apiURL)
 	if err != nil {
-		return ListWeatherToolResult{Results: []*WeatherToolResult{}}
+		return emptyResult
 	}
 	defer resp.Body.Close()
 
 	// Read response body
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return ListWeatherToolResult{Results: []*WeatherToolResult{}}
+		return emptyResult
 	}
 
 	// Deserialize JSON response
 	var apiResp WeatherAPIResponse
 	if err := json.Unmarshal(body, &apiResp); err != nil {
-		return ListWeatherToolResult{Results: []*WeatherToolResult{}}
+		return emptyResult
 	}
 
 	// Convert API response to WeatherToolResult slice

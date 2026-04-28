@@ -21,13 +21,6 @@ spec:
           * If the user inquiry is ambiguous or could be relevant to multiple agents, use your judgment to determine the most appropriate agent based on the content of the inquiry and the capabilities of the agents.
           * DO NOT ask the user for clarification, simply make the best decision based on the information available.
       * **Response Synthesis:** After receiving responses from the remote agents, synthesize the information into a clear and concise answer in a Markdown human-readable format for the user.
-    tools:
-      - type: McpServer
-        mcpServer:
-          name: weathermcpserver
-          kind: MCPServer
-          toolNames:
-            - weathertool
     a2aConfig:
       skills:
         - id: routing-skill

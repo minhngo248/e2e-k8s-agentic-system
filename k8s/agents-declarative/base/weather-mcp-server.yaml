@@ -1,14 +1,10 @@
-apiVersion: kagent.dev/v1alpha1
-kind: MCPServer
+apiVersion: kagent.dev/v1alpha2
+kind: RemoteMCPServer
 metadata:
   name: weathermcpserver
   namespace: kagent
 spec:
-  deployment:
-    image: ghcr.io/minhngo248/weathermcpserver-go:0.0.1-SNAPSHOT
-    port: 8080
-    replicas: 1
-  transportType: "http"
-  httpTransport:
-    path: "/mcp"
-    targetPort: 8080
+  description: |-
+    A remote MCP server that provides weather forecast information.
+  url: "http://weathermcpserver.kagent:8080/mcp"
+  protocol: STREAMABLE_HTTP
