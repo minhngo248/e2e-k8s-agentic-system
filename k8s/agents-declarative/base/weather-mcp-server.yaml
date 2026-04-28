@@ -1,0 +1,14 @@
+apiVersion: kagent.dev/v1alpha1
+kind: MCPServer
+metadata:
+  name: weathermcpserver
+  namespace: kagent
+spec:
+  deployment:
+    image: ghcr.io/minhngo248/weathermcpserver-go:0.0.1-SNAPSHOT
+    port: 8080
+    replicas: 1
+  transportType: "http"
+  httpTransport:
+    path: "/mcp"
+    targetPort: 8080
