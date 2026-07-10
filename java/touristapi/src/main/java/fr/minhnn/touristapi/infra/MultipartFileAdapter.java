@@ -1,7 +1,7 @@
 package fr.minhnn.touristapi.infra;
 
 import fr.minhnn.touristapi.destination.Destination;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayInputStream;
@@ -36,7 +36,7 @@ public class MultipartFileAdapter {
     }
 }
 
-@Log4j2
+@Slf4j
 class InMemoryMultipartFile implements MultipartFile {
     private final String fileName;
     private final byte[] content;

@@ -1,0 +1,8 @@
+logging:
+  structured:
+    format:
+      console: ecs
+  level:
+    fr.minhnn.touristapi.aspects: INFO
+    fr.minhnn.touristapi.destination: INFO
+    fr.minhnn.touristapi.infra: INFO

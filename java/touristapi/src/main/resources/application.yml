@@ -10,6 +10,20 @@ spring:
     username: ${POSTGRES_USER}
     password: ${POSTGRES_PASSWORD}
 
+logging:
+  level:
+    root: INFO
+
+    org.springframework: WARN
+    org.hibernate: WARN
+    org.apache.tomcat: WARN
+    org.apache.coyote: WARN
+
+    fr.minhnn.touristapi.aspects: DEBUG
+
+    fr.minhnn.touristapi.destination: INFO
+    fr.minhnn.touristapi.infra: DEBUG
+
 google:
   map:
     api:

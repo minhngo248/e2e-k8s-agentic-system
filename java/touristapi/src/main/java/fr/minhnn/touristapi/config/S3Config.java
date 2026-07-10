@@ -11,6 +11,7 @@ import software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsPro
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.model.AssumeRoleRequest;
 import software.amazon.awssdk.services.sts.model.AssumeRoleResponse;
@@ -52,5 +53,10 @@ public class S3Config {
         } catch (Exception e) {
             throw new BadRequestException("An error occurred while configuring S3 client: " + e.getMessage());
         }
+    }
+
+    @Bean
+    public S3Presigner s3Presigner() {
+        return S3Presigner.create();
     }
 }

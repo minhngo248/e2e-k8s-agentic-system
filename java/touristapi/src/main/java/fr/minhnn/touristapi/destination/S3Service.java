@@ -22,4 +22,11 @@ public interface S3Service {
      * @param imageUrls List of S3 URLs
      */
     void deleteImages(List<String> imageUrls);
+
+    /**
+     * Generate a presigned URL for an image in S3
+     * @param imageUrlOrKey Full S3 URL or object key
+     * @return Presigned URL
+     */
+    String generatePresignedImageUrl(String imageUrlOrKey);
 }

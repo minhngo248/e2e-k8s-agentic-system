@@ -2,7 +2,7 @@ package fr.minhnn.touristapi.destination;
 
 import fr.minhnn.touristapi.exceptions.BadRequestException;
 import lombok.Getter;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -10,7 +10,7 @@ import java.util.Objects;
 import java.util.UUID;
 
 @Getter
-@Log4j2
+@Slf4j
 public class Destination {
     private final DestinationIdentifier id;
     private String name;

@@ -4,7 +4,7 @@ import fr.minhnn.touristapi.destination.DestinationService;
 import fr.minhnn.touristapi.io.DestinationInput;
 import fr.minhnn.touristapi.io.DestinationOutput;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -13,7 +13,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@Log4j2
+@Slf4j
 public class DestinationController {
     private final DestinationService destinationService;
 

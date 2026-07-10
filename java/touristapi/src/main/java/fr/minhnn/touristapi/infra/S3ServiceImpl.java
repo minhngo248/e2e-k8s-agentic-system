@@ -5,7 +5,7 @@ import fr.minhnn.touristapi.destination.Destination;
 import fr.minhnn.touristapi.destination.S3Service;
 import fr.minhnn.touristapi.exceptions.BadRequestException;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
@@ -14,9 +14,13 @@ import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -24,11 +28,13 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-@Log4j2
+@Slf4j
 public class S3ServiceImpl implements S3Service {
     private final S3Client s3Client;
+    private final S3Presigner s3Presigner;
     private final S3Properties s3Properties;
 
+    private static final Duration PRESIGNED_URL_EXPIRATION = Duration.ofMinutes(15);
     private static final List<String> ALLOWED_CONTENT_TYPES = Arrays.asList(
             "image/jpeg", "image/jpg", "image/png", "image/webp"
     );
@@ -39,7 +45,7 @@ public class S3ServiceImpl implements S3Service {
         List<MultipartFile> multipartFiles = new ArrayList<>();
         files.parallelStream()
                 .forEach(file -> {
-                    log.info("Preparing to upload image: {}", file.fileName());
+                    log.debug("Preparing to upload image: {}", file.fileName());
                     synchronized (multipartFiles) {
                         multipartFiles.add(MultipartFileAdapter.toMultipartFile(file));
                     }
@@ -122,6 +128,20 @@ public class S3ServiceImpl implements S3Service {
         imageUrls.forEach(this::deleteImage);
     }
 
+    @Override
+    public String generatePresignedImageUrl(String imageUrlOrKey) {
+        String key = extractKeyFromUrl(imageUrlOrKey);
+        GetObjectRequest getObjectRequest = GetObjectRequest.builder()
+                .bucket(s3Properties.getBucketName())
+                .key(key)
+                .build();
+        PresignedGetObjectRequest presignedGetObjectRequest = s3Presigner.presignGetObject(request ->
+                request.signatureDuration(PRESIGNED_URL_EXPIRATION)
+                        .getObjectRequest(getObjectRequest)
+        );
+        return presignedGetObjectRequest.url().toString();
+    }
+
     private void validateImages(List<MultipartFile> files) {
         if (files == null || files.isEmpty()) {
             log.error("No images provided for upload");
@@ -160,9 +180,18 @@ public class S3ServiceImpl implements S3Service {
     }
 
     private String extractKeyFromUrl(String imageUrl) {
+        if (imageUrl == null || imageUrl.isBlank()) {
+            log.error("Invalid S3 URL/key format: {}", imageUrl);
+            throw new BadRequestException("Invalid S3 URL/key: " + imageUrl);
+        }
+
+        if (!imageUrl.contains("amazonaws.com/")) {
+            return imageUrl;
+        }
+
         // Extract key from URL: https://bucket.s3.region.amazonaws.com/folder/file.jpg -> folder/file.jpg
-        String[] parts = imageUrl.split(".amazonaws.com/");
-        if (parts.length < 2) {
+        String[] parts = imageUrl.split("\\.amazonaws\\.com/", 2);
+        if (parts.length < 2 || parts[1].isBlank()) {
             log.error("Invalid S3 URL format: {}", imageUrl);
             throw new BadRequestException("Invalid S3 URL: " + imageUrl);
         }

@@ -5,7 +5,7 @@ import fr.minhnn.touristapi.destination.DestinationManagement;
 import fr.minhnn.touristapi.destination.DestinationRepository;
 import fr.minhnn.touristapi.exceptions.BadRequestException;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.springframework.jdbc.core.simple.JdbcClient;
@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 
 @Repository
 @RequiredArgsConstructor
-@Log4j2
+@Slf4j
 public class DestinationRepositoryImpl implements DestinationRepository {
     private final JdbcClient jdbcClient;
     private final JsonMapper jsonMapper;

@@ -96,7 +96,9 @@ public class DestinationService {
                         dest.getCountryCode(),
                         dest.getCoordinates().latitude(),
                         dest.getCoordinates().longitude(),
-                        dest.getUrlImages()
+                        dest.getUrlImages().stream()
+                                .map(s3Service::generatePresignedImageUrl)
+                                .toList()
                 ))
                 .toList();
     }

@@ -54,4 +54,4 @@ RUN chown -R appuser:appgroup /app
 USER appuser
 
 # Run the application
-ENTRYPOINT ["java", "-jar", "/app/application.jar"]
+ENTRYPOINT ["java", "-Dspring.profiles.active=prod", "-jar", "/app/application.jar"]

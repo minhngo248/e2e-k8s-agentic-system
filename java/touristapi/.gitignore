@@ -33,3 +33,6 @@ build/
 
 ### Temporary directories ###
 tmp*
+
+### Environment files ###
+.env.*
