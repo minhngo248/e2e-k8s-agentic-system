@@ -1,0 +1,57 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: tourist-api
+  name: tourist-api
+  namespace: default
+spec:
+  ports:
+    - port: 8080
+      targetPort: 8080
+  selector:
+    app: tourist-api
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: tourist-api
+  name: tourist-api
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tourist-api
+  template:
+    metadata:
+      labels:
+        app: tourist-api
+    spec:
+      containers:
+        - image: ghcr.io/minhngo248/touristapi:0.0.1-SNAPSHOT
+          name: touristapi
+          args: ["--spring.profiles.active=prod,garage"]
+          envFrom:
+            - secretRef:
+                name: postgres
+            - secretRef:
+                name: tourist-api
+          ports:
+            - containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+            initialDelaySeconds: 20
+            periodSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+            initialDelaySeconds: 20
+            periodSeconds: 5
+            failureThreshold: 3
