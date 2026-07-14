@@ -1,81 +1,87 @@
 package fr.minhnn.touristagent;
 
-import fr.minhnn.touristagent.config.TouristApiProperties;
-import io.a2a.server.agentexecution.AgentExecutor;
-import io.a2a.spec.*;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.log4j.Log4j2;
-import org.springaicommunity.a2a.server.executor.DefaultAgentExecutor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
+import org.springframework.ai.chat.memory.ChatMemory;
+import org.springframework.ai.chat.memory.ChatMemoryRepository;
+import org.springframework.ai.chat.memory.MessageWindowChatMemory;
+import org.springframework.ai.chat.memory.repository.jdbc.JdbcChatMemoryRepository;
+import org.springframework.ai.chat.memory.repository.jdbc.PostgresChatMemoryRepositoryDialect;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
-import org.springframework.web.client.RestClient;
+import org.springframework.jdbc.core.JdbcTemplate;
 
-import java.util.List;
+import javax.sql.DataSource;
 
 @SpringBootApplication
-@Log4j2
-@RequiredArgsConstructor
-public class TouristAgentApplication {
-    private static final String SYSTEM_INSTRUCTION = """
-            You are a tourist agent. Your task is to recommend tourist destinations to users based on their preferences and location.
-            You have access to a database of tourist destinations, which you can query using the following API:
-            
-            GET /api/v1/destinations?types={types}&latitude={latitude}&longitude={longitude}&radiusKm={radiusKm}
-            
-            The API returns a list of tourist destinations that match the specified types and are located within the specified radius from the given latitude and longitude.
-            
-            Responses must be in Markdown human-readable format. If the user query is ambiguous, use your best judgment to determine the most likely intent and provide a relevant
-            response based on the available API.
-            """;
-
-    private final RestClient restClient;
-    private final TouristApiProperties touristApiProperties;
+@Slf4j
+public class OrchestratorApplication {
+    private static final Integer MAX_MESSAGES = 2000;
 
     public static void main(String[] args) {
-        SpringApplication.run(TouristAgentApplication.class, args);
+        SpringApplication.run(OrchestratorApplication.class, args);
+    }
+
+    private static final String ROUTING_SYSTEM_PROMPT = """
+            **Role:** You are an expert Routing Delegator. Your primary function is to accurately delegate user inquiries regarding weather or tourist informations to the appropriate specialized remote agents,
+            and then synthesize the responses from these agents into a coherent and concise answer for the user.
+            
+            **Core Directives:**
+            
+            * **Task Delegation:** Utilize the `sendMessage` function to assign actionable tasks to remote agents.
+            * **Contraints**:
+                * Only receive and process user inquiries related to weather or tourist information.
+                * Otherwise, do not route user inquiries and politely inform the user that you can only assist with weather or tourist information and ask them to rephrase their question accordingly.
+                * Ensure that the delegation is clear and concise, providing necessary context for the remote agent to understand the task.
+                * If the user inquiry is ambiguous or could be relevant to multiple agents, use your judgment to determine the most appropriate agent based on the content of the inquiry and the capabilities of the agents.
+                * DO NOT ask the user for clarification, simply make the best decision based on the information available.
+            * **No Pre-Tool Text:** When you need to call a tool, call it IMMEDIATELY without outputting any text beforehand. Do NOT say things like "Let me fetch that for you" or "I'm checking with the agent". Just call the tool directly.
+            * **Response Synthesis:** After receiving responses from the remote agents, synthesize the information into a clear and concise answer in a Markdown human-readable format for the user.
+            
+            **Agent Router:**
+            
+            Available Agents:
+            %s
+            """;
+
+    @Bean
+    public JdbcTemplate jdbcTemplate(DataSource dataSource) {
+        return new JdbcTemplate(dataSource);
     }
 
     @Bean
-    public AgentCard agentCard(@Value("${server.port:8080}") int port,
-                               @Value("${server.servlet.context-path:/}") String contextPath) {
-
-        return new AgentCard.Builder().name("Tourist Agent")
-                .description("An agent that provides tourist destination recommendations based on user preferences and location.")
-                .url("http://localhost:" + port + contextPath)
-                .version("1.0.0")
-                .capabilities(new AgentCapabilities.Builder()
-                        .streaming(false)
-                        .build()
-                )
-                .defaultInputModes(List.of("text"))
-                .defaultOutputModes(List.of("text"))
-                .skills(List.of(new AgentSkill.Builder().id("tourist_destination_search")
-                        .name("Tourist Destination Search")
-                        .description("Search for tourist destinations based on user preferences and location.")
-                        .tags(List.of("tourism", "destination", "recommendation"))
-                        .examples(List.of("Find me some beach destinations near me.", "What are some good tourist spots in Paris?"))
-                        .build()))
-                .protocolVersion("0.3.0")
+    public ChatMemoryRepository chatMemoryRepository(JdbcTemplate jdbcTemplate) {
+        return JdbcChatMemoryRepository.builder()
+                .jdbcTemplate(jdbcTemplate)
+                .dialect(new PostgresChatMemoryRepositoryDialect())
                 .build();
     }
 
     @Bean
-    public AgentExecutor agentExecutor(ChatClient.Builder chatClientBuilder) {
-
-        ChatClient chatClient = chatClientBuilder.clone()
-                .defaultSystem(SYSTEM_INSTRUCTION)
-                .build();
-
-        return new DefaultAgentExecutor(chatClient, (chat, requestContext) -> {
-            String userMessage = DefaultAgentExecutor.extractTextFromMessage(requestContext.getMessage());
-            return chat.prompt()
-                    .tools(new TouristTool(restClient, touristApiProperties))
-                    .user(userMessage)
-                    .call()
-                    .content();
-        });
+    public ChatMemory chatMemory(ChatMemoryRepository chatMemoryRepository) {
+        return MessageWindowChatMemory.builder()
+            .chatMemoryRepository(chatMemoryRepository)
+            .maxMessages(MAX_MESSAGES)
+            .build();
     }
+
+    @Bean
+    public ChatClient routingChatClient(ChatClient.Builder chatClientBuilder,
+                                        RemoteAgentConnections remoteAgentConnections,
+                                        ChatMemory chatMemory) {
+
+        String systemPrompt = String.format(ROUTING_SYSTEM_PROMPT, remoteAgentConnections.getAgentDescriptions());
+
+        log.info("Initializing routing ChatClient with agents: {}", remoteAgentConnections.getAgentNames());
+
+        return chatClientBuilder
+                .defaultSystem(systemPrompt)
+                .defaultAdvisors(MessageChatMemoryAdvisor.builder(chatMemory).build())
+                .defaultTools(remoteAgentConnections)
+                .build();
+    }
+
+
 }

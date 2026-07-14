@@ -5,8 +5,8 @@ import fr.minhnn.touristapi.exceptions.ForbiddenException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
-import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
@@ -20,6 +20,7 @@ import software.amazon.awssdk.services.sts.model.StsException;
 
 @Configuration
 @RequiredArgsConstructor
+@Profile("s3")
 public class S3Config {
     private final S3Properties s3Properties;
 

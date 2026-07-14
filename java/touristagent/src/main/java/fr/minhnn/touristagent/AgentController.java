@@ -1,27 +1,29 @@
 package fr.minhnn.orchestrator;
 
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
 
 import java.util.Map;
 
 @RestController
-@Log4j2
-public class RoutingController {
+@RequestMapping("/agent")
+@Slf4j
+public class AgentController {
 
     private final ChatClient chatClient;
 
-    public RoutingController(ChatClient chatClient) {
+    public AgentController(ChatClient chatClient) {
         this.chatClient = chatClient;
     }
 
-    @PostMapping(value = "/chat", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    @PostMapping(value = "/execute", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<ServerSentEvent<String>> chat(@RequestBody Map<String, String> request) {
         String userMessage = request.get("message");
         log.info("Received user message: {}", userMessage);

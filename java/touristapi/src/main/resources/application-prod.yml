@@ -6,3 +6,7 @@ logging:
     fr.minhnn.touristapi.aspects: INFO
     fr.minhnn.touristapi.destination: INFO
     fr.minhnn.touristapi.infra: INFO
+
+s3:
+  role-arn: ${AWS_ROLE_ARN}
+  role-session-name: ${AWS_ROLE_SESSION_NAME}

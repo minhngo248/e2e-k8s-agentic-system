@@ -45,7 +45,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /app
 
 # Copy the native executable from build stage
-COPY --from=builder /build/target/touristagent-${VERSION}.jar /app/application.jar
+COPY --from=builder /build/target/orchestrator-${VERSION}.jar /app/application.jar
 
 # Create export directory with set permissions
 RUN chown -R appuser:appgroup /app

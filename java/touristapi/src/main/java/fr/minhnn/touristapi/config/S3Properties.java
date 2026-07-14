@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ConfigurationProperties(prefix = "s3")
 public class S3Properties {
+    private String endpoint;
     private String roleArn;
     private String roleSessionName;
     private String bucketName;

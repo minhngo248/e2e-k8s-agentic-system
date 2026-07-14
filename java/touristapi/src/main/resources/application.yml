@@ -30,8 +30,7 @@ google:
       key: ${API_GOOGLE_KEY}
 
 s3:
-  role-arn: ${AWS_ROLE_ARN}
-  role-session-name: ${AWS_ROLE_SESSION_NAME}
+  endpoint: ${S3_ENDPOINT}
   bucket-name: ${AWS_BUCKET_NAME}
   region: ${AWS_REGION}
 

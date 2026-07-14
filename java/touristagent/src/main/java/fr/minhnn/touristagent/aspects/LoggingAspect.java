@@ -1,4 +1,4 @@
-package fr.minhnn.touristagent.aspects;
+package fr.minhnn.orchestrator.aspects;
 
 import lombok.extern.log4j.Log4j2;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -13,8 +13,8 @@ import java.util.Arrays;
 @Log4j2
 public class LoggingAspect {
     
-    @Around("execution(* fr.minhnn.touristagent..*(..))")
-    public Object logAgent(ProceedingJoinPoint joinPoint) throws Throwable {
+    @Around("execution(* fr.minhnn.orchestrator..*(..))")
+    public Object logOrchestrator(ProceedingJoinPoint joinPoint) throws Throwable {
         String className = joinPoint.getTarget().getClass().getSimpleName();
         String methodName = joinPoint.getSignature().getName();
         Object[] args = joinPoint.getArgs();

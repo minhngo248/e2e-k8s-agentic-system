@@ -4,15 +4,14 @@ import fr.minhnn.touristapi.config.S3Properties;
 import fr.minhnn.touristapi.destination.Destination;
 import fr.minhnn.touristapi.destination.S3Service;
 import fr.minhnn.touristapi.exceptions.BadRequestException;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.sync.RequestBody;
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
@@ -28,57 +27,60 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j
-@Profile("s3")
-public class S3ServiceImpl implements S3Service {
+@Profile("garage")
+public class GarageServiceImpl implements S3Service {
+    private final S3Properties s3Properties;
     private final S3Client s3Client;
     private final S3Presigner s3Presigner;
-    private final S3Properties s3Properties;
 
     private static final Duration PRESIGNED_URL_EXPIRATION = Duration.ofMinutes(15);
     private static final List<String> ALLOWED_CONTENT_TYPES = Arrays.asList(
             "image/jpeg", "image/jpg", "image/png", "image/webp"
     );
-    private static final long MAX_FILE_SIZE = 5 * 1024 * 1024L; // 5MB
+    private static final long MAX_FILE_SIZE = 5 * 1024 * 1024L;
+
+    public GarageServiceImpl(S3Properties s3Properties,
+                             @Qualifier("garageS3Client") S3Client s3Client,
+                             @Qualifier("garageS3Presigner") S3Presigner s3Presigner) {
+        this.s3Client = s3Client;
+        this.s3Presigner = s3Presigner;
+        this.s3Properties = s3Properties;
+    }
 
     @Override
     public List<String> uploadImages(List<Destination.ImageFile> files, String folder) {
         List<MultipartFile> multipartFiles = new ArrayList<>();
-        files.parallelStream()
-                .forEach(file -> {
-                    log.debug("Preparing to upload image: {}", file.fileName());
-                    synchronized (multipartFiles) {
-                        multipartFiles.add(MultipartFileAdapter.toMultipartFile(file));
-                    }
-                });
+        files.parallelStream().forEach(file -> {
+            log.debug("Preparing to upload image: {}", file.fileName());
+            synchronized (multipartFiles) {
+                multipartFiles.add(MultipartFileAdapter.toMultipartFile(file));
+            }
+        });
 
         validateImages(multipartFiles);
 
         List<String> uploadedUrls = new ArrayList<>();
-        multipartFiles.parallelStream()
-                .forEach(multipartFile -> {
-                    try {
-                        String url = uploadSingleImage(multipartFile, folder);
-                        synchronized (uploadedUrls) {
-                            uploadedUrls.add(url);
-                        }
-                    } catch (Exception e) {
-                        log.error("Failed to upload image: {}", multipartFile.getOriginalFilename(), e);
-                        throw new BadRequestException("Failed to upload image: " + multipartFile.getOriginalFilename());
-                    }
-                });
-
-        TransactionSynchronizationManager.registerSynchronization(
-                new TransactionSynchronization() {
-                    @Override
-                    public void afterCompletion(int status) {
-                        if (status == STATUS_ROLLED_BACK) {
-                            deleteImages(uploadedUrls);
-                        }
-                    }
+        multipartFiles.parallelStream().forEach(multipartFile -> {
+            try {
+                String url = uploadSingleImage(multipartFile, folder);
+                synchronized (uploadedUrls) {
+                    uploadedUrls.add(url);
                 }
-        );
+            } catch (Exception e) {
+                log.error("Failed to upload image: {}", multipartFile.getOriginalFilename(), e);
+                throw new BadRequestException("Failed to upload image: " + multipartFile.getOriginalFilename());
+            }
+        });
+
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCompletion(int status) {
+                if (status == STATUS_ROLLED_BACK) {
+                    deleteImages(uploadedUrls);
+                }
+            }
+        });
 
         return uploadedUrls;
     }
@@ -97,12 +99,12 @@ public class S3ServiceImpl implements S3Service {
 
         s3Client.putObject(putObjectRequest, RequestBody.fromBytes(file.getBytes()));
 
-        String url = String.format("https://%s.s3.%s.amazonaws.com/%s",
+        String url = String.format("%s/%s/%s",
+                s3Properties.getEndpoint(),
                 s3Properties.getBucketName(),
-                Region.of(s3Properties.getRegion()),
                 key);
 
-        log.info("Uploaded image to S3: {}", url);
+        log.info("Uploaded image to Garage: {}", url);
         return url;
     }
 
@@ -116,9 +118,9 @@ public class S3ServiceImpl implements S3Service {
                     .build();
 
             s3Client.deleteObject(deleteObjectRequest);
-            log.info("Deleted image from S3: {}", imageUrl);
+            log.info("Deleted image from Garage: {}", imageUrl);
         } catch (Exception e) {
-            log.error("Failed to delete image from S3: {}", imageUrl, e);
+            log.error("Failed to delete image from Garage: {}", imageUrl, e);
         }
     }
 
@@ -137,38 +139,34 @@ public class S3ServiceImpl implements S3Service {
                 .bucket(s3Properties.getBucketName())
                 .key(key)
                 .build();
+
         PresignedGetObjectRequest presignedGetObjectRequest = s3Presigner.presignGetObject(request ->
                 request.signatureDuration(PRESIGNED_URL_EXPIRATION)
                         .getObjectRequest(getObjectRequest)
         );
+
         return presignedGetObjectRequest.url().toString();
     }
 
     private void validateImages(List<MultipartFile> files) {
         if (files == null || files.isEmpty()) {
-            log.error("No images provided for upload");
             throw new BadRequestException("At least 1 image is required");
         }
 
         if (files.size() > 5) {
-            log.error("Too many images provided: {}. Maximum allowed is 5", files.size());
             throw new BadRequestException("Maximum 5 images allowed");
         }
 
         for (MultipartFile file : files) {
             if (file.isEmpty()) {
-                log.error("Empty file provided: {}", file.getOriginalFilename());
                 throw new BadRequestException("Empty file is not allowed");
             }
 
             if (file.getSize() > MAX_FILE_SIZE) {
-                log.error("File size exceeds limit: {} ({} bytes)", file.getOriginalFilename(), file.getSize());
                 throw new BadRequestException("File size must not exceed 5MB: " + file.getOriginalFilename());
             }
 
-            String contentType = file.getContentType();
-            if (!ALLOWED_CONTENT_TYPES.contains(contentType)) {
-                log.error("Invalid file type: {} ({}). Allowed types are: {}", file.getOriginalFilename(), contentType, ALLOWED_CONTENT_TYPES);
+            if (!ALLOWED_CONTENT_TYPES.contains(file.getContentType())) {
                 throw new BadRequestException("Invalid file type. Only JPEG, PNG, WEBP are allowed: " + file.getOriginalFilename());
             }
         }
@@ -183,20 +181,18 @@ public class S3ServiceImpl implements S3Service {
 
     private String extractKeyFromUrl(String imageUrl) {
         if (imageUrl == null || imageUrl.isBlank()) {
-            log.error("Invalid S3 URL/key format: {}", imageUrl);
             throw new BadRequestException("Invalid S3 URL/key: " + imageUrl);
         }
 
-        if (!imageUrl.contains("amazonaws.com/")) {
+        if (!imageUrl.startsWith(s3Properties.getEndpoint())) {
             return imageUrl;
         }
 
-        // Extract key from URL: https://bucket.s3.region.amazonaws.com/folder/file.jpg -> folder/file.jpg
-        String[] parts = imageUrl.split("\\.amazonaws\\.com/", 2);
-        if (parts.length < 2 || parts[1].isBlank()) {
-            log.error("Invalid S3 URL format: {}", imageUrl);
-            throw new BadRequestException("Invalid S3 URL: " + imageUrl);
+        String prefix = s3Properties.getEndpoint() + "/" + s3Properties.getBucketName() + "/";
+        if (!imageUrl.startsWith(prefix)) {
+            throw new BadRequestException("Invalid Garage URL: " + imageUrl);
         }
-        return parts[1];
+
+        return imageUrl.substring(prefix.length());
     }
 }
