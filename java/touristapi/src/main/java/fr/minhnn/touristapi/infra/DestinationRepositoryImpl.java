@@ -75,30 +75,34 @@ public class DestinationRepositoryImpl implements DestinationRepository {
                                                       @NonNull Double latitude,
                                                       @NonNull Double longitude,
                                                       @NonNull Double radiusKm) {
-        StringBuilder sql = new StringBuilder("SELECT * FROM destinations WHERE ");
+        StringBuilder sql = new StringBuilder("SELECT * FROM destinations");
         List<Object> params = new ArrayList<>();
+        List<String> conditions = new ArrayList<>();
 
         if (!types.isEmpty()) {
-            sql.append("types @> ?::jsonb ");
-            params.add(convertDestinationTypesToJson(types));
+            String[] typeArray = types.stream().map(Enum::name).toArray(String[]::new);
+            conditions.add("types ??| ?");
+            params.add(typeArray);
         }
-        sql.append(" AND (6371 * acos(cos(radians(?)) * cos(radians(latitude)) * " +
+
+        conditions.add("(6371 * acos(cos(radians(?)) * cos(radians(latitude)) * " +
                 "cos(radians(longitude) - radians(?)) + sin(radians(?)) * sin(radians(latitude)))) <= ?");
         params.add(latitude);
         params.add(longitude);
         params.add(latitude);
         params.add(radiusKm);
 
+        sql.append(" WHERE ").append(String.join(" AND ", conditions));
+
         return jdbcClient.sql(sql.toString())
                 .params(params.toArray())
                 .query(rs -> {
-                            List<Destination> destinations = new ArrayList<>();
-                            while (rs.next()) {
-                                destinations.add(mapRowToDestination(rs));
-                            }
-                            return destinations;
-                        }
-                );
+                    List<Destination> destinations = new ArrayList<>();
+                    while (rs.next()) {
+                        destinations.add(mapRowToDestination(rs));
+                    }
+                    return destinations;
+                });
     }
 
     @Override
