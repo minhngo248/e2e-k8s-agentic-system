@@ -1,17 +1,8 @@
 package fr.minhnn.touristagent;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.ai.chat.memory.ChatMemory;
-import org.springframework.ai.chat.memory.ChatMemoryRepository;
-import org.springframework.ai.chat.memory.MessageWindowChatMemory;
-import org.springframework.ai.chat.memory.repository.jdbc.JdbcChatMemoryRepository;
-import org.springframework.ai.chat.memory.repository.jdbc.PostgresChatMemoryRepositoryDialect;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.annotation.Bean;
-import org.springframework.jdbc.core.JdbcTemplate;
-
-import javax.sql.DataSource;
 
 @SpringBootApplication
 @Slf4j
@@ -22,7 +13,7 @@ public class TouristAgentApplication {
         SpringApplication.run(TouristAgentApplication.class, args);
     }
 
-    @Bean
+/*    @Bean
     public JdbcTemplate jdbcTemplate(DataSource dataSource) {
         return new JdbcTemplate(dataSource);
     }
@@ -42,5 +33,5 @@ public class TouristAgentApplication {
             .maxMessages(MAX_MESSAGES)
             .build();
     }
-
+*/
 }

@@ -12,19 +12,19 @@ spring:
       options:
         model: gpt-4o-mini
         temperature: 0.7
-    chat:
-      memory:
-        repository:
-          jdbc:
-            initialize-schema: never
+#    chat:
+#      memory:
+#        repository:
+#          jdbc:
+#            initialize-schema: never
   liquibase:
-    enabled: true
+    enabled: false
     change-log: classpath:liquibase/changelog-master.xml
-  datasource:
-    driver-class-name: org.postgresql.Driver
-    url: "jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}"
-    username: ${POSTGRES_USER}
-    password: ${POSTGRES_PASSWORD}
+#  datasource:
+#    driver-class-name: org.postgresql.Driver
+#    url: "jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}"
+#    username: ${POSTGRES_USER}
+#    password: ${POSTGRES_PASSWORD}
 
 tourist:
   api:
@@ -40,9 +40,18 @@ logging:
     io.netty: WARN
 
     fr.minhnn.touristagent: DEBUG
+    
+    org.springaicommunity.a2a: DEBUG
+    io.a2a: DEBUG
+    io.github.a2asdk: DEBUG
 
 management:
   endpoints:
     web:
       exposure:
         include: mappings,health,info
+
+agent:
+  name: Tourist Agent
+  description: An agent that provides information about tourist attractions, events, and travel tips
+  version: 1.0.0

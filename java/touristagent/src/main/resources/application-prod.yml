@@ -7,3 +7,7 @@ logging:
       console: ecs
   level:
     fr.minhnn.touristagent: INFO
+
+    org.springaicommunity.a2a: INFO
+    io.a2a: INFO
+    io.github.a2asdk: INFO
