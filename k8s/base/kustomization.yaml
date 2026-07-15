@@ -3,3 +3,4 @@ kind: Kustomization
 resources:
   - tourist-api.yaml
   - postgres.yaml
+  - tourist-agent.yaml

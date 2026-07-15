@@ -13,14 +13,15 @@ kubectl -n garage exec -it sts/garage -- ./garage key create tourist-api-key
 kubectl -n garage exec -it sts/garage -- ./garage bucket create tourist-images
 
 # Add bucket policy to API Key
-kubectl -n garage exec -it sts/garage -- ./garage bucket allow   --read --write --owner   --key tourist-api-key   tourist-images
+kubectl -n garage exec -it sts/garage -- ./garage bucket allow   --read --write --key tourist-api-key   tourist-images
 ```
 
-Create `postgres` secret, and `tourist-api` secret before 
+Create `postgres` secret, `tourist-api` secret, and `agent` secret before 
 deploying the application using Kustomize.
 ```bash
 k -n default create secret generic postgres --from-env-file=k8s/.env.postgres
 k -n default create secret generic tourist-api --from-env-file=k8s/.env.touristapi
+k -n default create secret generic agent --from-env-file=k8s/.env.agent
 ```
 
 Then, deploy the application using Kustomize:
