@@ -1,4 +1,4 @@
-package fr.minhnn.orchestrator;
+package fr.minhnn.touristagent;
 
 import org.springframework.boot.test.context.SpringBootTest;
 

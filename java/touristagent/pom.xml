@@ -10,7 +10,7 @@
     <groupId>fr.minhnn</groupId>
     <artifactId>touristagent</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>orchestrator</name>
+    <name>touristagent</name>
 
     <properties>
         <java.version>25</java.version>

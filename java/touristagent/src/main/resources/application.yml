@@ -1,0 +1,48 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: touristagent
+  ai:
+    retry:
+      max-attempts: 1
+    openai:
+      api-key: ${OPENAI_API_KEY}
+      options:
+        model: gpt-4o-mini
+        temperature: 0.7
+    chat:
+      memory:
+        repository:
+          jdbc:
+            initialize-schema: never
+  liquibase:
+    enabled: true
+    change-log: classpath:liquibase/changelog-master.xml
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: "jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}"
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
+
+tourist:
+  api:
+    url: "${TOURIST_API_URL:http://localhost:8080}"
+
+logging:
+  level:
+    root: INFO
+
+    org.springframework: WARN
+    org.hibernate: WARN
+    reactor.netty: WARN
+    io.netty: WARN
+
+    fr.minhnn.touristagent: DEBUG
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: mappings,health,info

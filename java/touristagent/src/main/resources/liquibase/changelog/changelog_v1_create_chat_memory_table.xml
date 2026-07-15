@@ -15,6 +15,10 @@
                 <constraints nullable="false"/>
             </column>
 
+            <column name="sequence_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+
             <column name="content" type="TEXT">
                 <constraints nullable="false"/>
             </column>
@@ -32,6 +36,13 @@
                 indexName="idx_chat_memory_conversation_id"
                 tableName="SPRING_AI_CHAT_MEMORY">
             <column name="conversation_id"/>
+        </createIndex>
+
+        <createIndex
+                indexName="idx_chat_memory_conversation_id_sequence_id"
+                tableName="SPRING_AI_CHAT_MEMORY">
+            <column name="conversation_id"/>
+            <column name="sequence_id"/>
         </createIndex>
 
     </changeSet>

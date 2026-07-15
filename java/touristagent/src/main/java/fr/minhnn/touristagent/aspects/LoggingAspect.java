@@ -1,4 +1,4 @@
-package fr.minhnn.orchestrator.aspects;
+package fr.minhnn.touristagent.aspects;
 
 import lombok.extern.log4j.Log4j2;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -13,13 +13,13 @@ import java.util.Arrays;
 @Log4j2
 public class LoggingAspect {
     
-    @Around("execution(* fr.minhnn.orchestrator..*(..))")
+    @Around("execution(* fr.minhnn.touristagent..*(..))")
     public Object logOrchestrator(ProceedingJoinPoint joinPoint) throws Throwable {
         String className = joinPoint.getTarget().getClass().getSimpleName();
         String methodName = joinPoint.getSignature().getName();
         Object[] args = joinPoint.getArgs();
         
-        log.info("Executing {}.{}() with args: {}", className, methodName, Arrays.toString(args));
+        log.debug("Executing {}.{}() with args: {}", className, methodName, Arrays.toString(args));
         
         try {
             Object result = joinPoint.proceed();
