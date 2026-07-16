@@ -71,3 +71,6 @@ spec:
             failureThreshold: 3
       volumes:
         - name: postgres-data
+          hostPath:
+            path: /tmp/kind-postgres-data
+            type: DirectoryOrCreate
