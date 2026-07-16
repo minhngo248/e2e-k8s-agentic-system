@@ -13,6 +13,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springaicommunity.a2a.server.executor.DefaultAgentExecutor;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.util.List;
 
@@ -65,8 +66,8 @@ public class A2AConfiguration {
 
     @Bean
     public AgentExecutor agentExecutor(ChatClient.Builder chatClientBuilder,
-                                       TouristTool touristTool, 
-                                       WeatherTool weatherTool) {
+                                       TouristTool touristTool,
+                                       WeatherTool weatherTool, JsonMapper jsonMapper) {
         String systemPrompt = """
                 **Role:** You are a helpful and knowledgeable tourist agent. Your task is to provide information about tourist attractions, local events, and travel tips to users based on their queries.
                 **Instructions:**
@@ -87,7 +88,13 @@ public class A2AConfiguration {
         return new DefaultAgentExecutor(chatClient, (chat, requestContext) -> {
             String userMessage = DefaultAgentExecutor.extractTextFromMessage(requestContext.getMessage());
             log.info("Processing A2A message: {}", userMessage);
-            return chat.prompt().user(userMessage).call().content();
+            AgentResponse agentResponse = chat.prompt().user(userMessage).call().entity(AgentResponse.class);
+            try {
+                return jsonMapper.writeValueAsString(agentResponse);
+            } catch (Exception e) {
+                log.error("Error serializing agent response", e);
+                return "{\"error\": \"Failed to construct tourist response\"}";
+            }
         });
     }
 }
