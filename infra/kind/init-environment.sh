@@ -12,9 +12,17 @@ KIND_INSTALLED=false
 DOCKER_INSTALLED=false
 CLUSTER_CREATED=false
 HELM_INSTALLED=false
+SUBSTRATE_INSTALLED=false
 CLUSTER_NAME="default"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CONFIG_FILE="${SCRIPT_DIR}/kind-cluster.yaml"
+
+# ─── Check if OPENAI_API_KEY is set
+if [[ -z "${OPENAI_API_KEY:-}" ]]; then
+  error "OPENAI_API_KEY environment variable is not set. Please set it before running this script."
+else
+  info "OPENAI_API_KEY is set."
+fi
 
 # ─── Check if kubectl is installed
 if ! command -v kubectl &> /dev/null; then
@@ -71,18 +79,47 @@ else
   error "Cannot install ArgoCD. Please ensure kubectl is installed and the kind cluster is created."
 fi
 
-# ─── Install Kagent if Helm is installed and cluster is created
+
+# ─── Install Substrate if Helm is installed and cluster is created
 if [[ "$HELM_INSTALLED" == true && "$CLUSTER_CREATED" == true ]]; then
+  info "Installing Substrate with CRDs..."
+  helm upgrade --install substrate-crds \
+    oci://ghcr.io/kagent-dev/substrate/helm/substrate-crds \
+    --version 0.0.9 \
+    --namespace ate-system --create-namespace --wait
+  info "Substrate CRDs installed successfully."
+  info "Installing Substrate..."
+  helm upgrade --install substrate \
+    oci://ghcr.io/kagent-dev/substrate/helm/substrate \
+    --version 0.0.9 \
+    --namespace ate-system --wait --timeout 10m
+  SUBSTRATE_INSTALLED=true
+  info "Substrate installed successfully."
+else
+  error "Cannot install Substrate. Please ensure Helm is installed and the kind cluster is created."
+fi
+
+# ─── Install Kagent if Substrate is installed and cluster is created
+if [[ "$SUBSTRATE_INSTALLED" == true ]]; then
   info "Installing Kagent with CRDs..."
   helm install kagent-crds oci://ghcr.io/kagent-dev/kagent/helm/kagent-crds \
       --namespace kagent \
+      --version 0.9.9 \
       --create-namespace
   info "Kagent CRDs installed successfully."
   info "Installing Kagent..."
-  helm install kagent oci://ghcr.io/kagent-dev/kagent/helm/kagent \
-      --namespace kagent \
+  helm upgrade --install kagent \
+      oci://ghcr.io/kagent-dev/kagent/helm/kagent \
+      --version 0.9.9 \
+      --namespace kagent --timeout 10m --wait \
+      --set providers.openAI.apiKey="${OPENAI_API_KEY}" \
       --set providers.default=openAI \
-      --set providers.openAI.apiKey="$OPENAI_API_KEY"
+      --set controller.substrate.enabled=true \
+      --set controller.substrate.ateApiEndpoint=dns:///api.ate-system.svc:443 \
+      --set controller.substrate.ateApiInsecure=true \
+      --set substrateWorkerPool.create=true \
+      --set substrateWorkerPool.replicas=1 \
+      --set substrateWorkerPool.ateomImage=ghcr.io/kagent-dev/substrate/ateom-gvisor:v0.0.6
 else
-  error "Cannot install Kagent. Please ensure Helm is installed and the kind cluster is created."
+  error "Cannot install Kagent. Please ensure Substrate is installed and the kind cluster is created."
 fi
