@@ -1,6 +1,8 @@
-import streamlit as st
-import httpx
 import os
+
+import streamlit as st
+
+from a2a_client import fetch_agent_card, send_message
 
 # Page configuration
 st.set_page_config(
@@ -9,31 +11,19 @@ st.set_page_config(
     layout="wide"
 )
 
-def stream_from_spring(prompt: str):
-    timeout = httpx.Timeout(300.0, connect=10.0)  # 5 min read timeout, 10s connect timeout
-    headers = {"Accept": "text/event-stream", "Content-Type": "application/json"}
+TOURIST_AGENT_URL = os.getenv("TOURIST_AGENT_URL", "http://localhost:8083")
 
-    # Get orchestrator URL from environment variable, default to localhost if not set
-    orchestrator_url = os.getenv("ORCHESTRATOR_URL", "http://localhost:8083")
 
-    with httpx.stream(
-        "POST",
-        f"{orchestrator_url}/chat",
-        json={"message": prompt},
-        timeout=timeout,
-        headers=headers
-    ) as r:
-        data_lines = []
-        for line in r.iter_lines():
-            if line.startswith("data:"):
-                data_lines.append(line[5:])
-            elif line == "" and data_lines:
-                # Blank line = end of SSE event; join accumulated data lines with \n
-                yield "\n".join(data_lines)
-                data_lines = []
-        # Flush any remaining data
-        if data_lines:
-            yield "\n".join(data_lines)
+@st.cache_data(ttl=300, show_spinner=False)
+def load_agent_card(agent_url: str):
+    return fetch_agent_card(agent_url)
+
+
+def render_assistant_message(content: str, image_urls: list[str] | None = None):
+    st.markdown(content or "_No answer returned._")
+    if image_urls:
+        st.image(image_urls, width=240)
+
 
 # Initialize session state for chat history
 if "messages" not in st.session_state:
@@ -63,7 +53,10 @@ else:
     # Display all previous messages in the conversation
     for message in st.session_state.messages:
         with st.chat_message(message["role"]):
-            st.markdown(message["content"])
+            if message["role"] == "assistant":
+                render_assistant_message(message["content"], message.get("image_urls", []))
+            else:
+                st.markdown(message["content"])
 
 # Chat input
 if prompt := st.chat_input("Ask me about destinations or weather..."):
@@ -77,18 +70,20 @@ if prompt := st.chat_input("Ask me about destinations or weather..."):
     # Display assistant response
     with st.chat_message("assistant"):
         response_placeholder = st.empty()
-        full_response = ""
 
         try:
-            for chunk in stream_from_spring(prompt):
-                full_response += chunk
-                response_placeholder.markdown(full_response + "▌")
+            with st.spinner("Contacting tourist agent..."):
+                payload = send_message(TOURIST_AGENT_URL, prompt)
 
-            # Final response without cursor
-            response_placeholder.markdown(full_response)
+            response_placeholder.empty()
+            render_assistant_message(payload.answer, payload.image_urls)
 
             # Add assistant message to chat history
-            st.session_state.messages.append({"role": "assistant", "content": full_response})
+            st.session_state.messages.append({
+                "role": "assistant",
+                "content": payload.answer,
+                "image_urls": payload.image_urls,
+            })
 
         except Exception as e:
             error_message = f"⚠️ Error: {str(e)}"
@@ -98,15 +93,25 @@ if prompt := st.chat_input("Ask me about destinations or weather..."):
 # Sidebar with additional information
 with st.sidebar:
     st.header("ℹ️ About")
+    st.caption(f"Tourist agent: `{TOURIST_AGENT_URL}`")
+
+    try:
+        agent_card = load_agent_card(TOURIST_AGENT_URL)
+        st.subheader(agent_card.get("name", "A2A Tourist Agent"))
+        description = agent_card.get("description")
+        if description:
+            st.markdown(description)
+    except Exception as e:
+        st.warning(f"Agent card unavailable: {e}")
+
     st.markdown("""
     This assistant combines:
     - **Tourist Agent**: Provides destination recommendations and travel information
     - **Weather Agent**: Delivers weather forecasts and climate data
-    
+
     All powered by AI agents working together!
     """)
 
     if st.button("🗑️ Clear Conversation"):
         st.session_state.messages = []
         st.rerun()
-
