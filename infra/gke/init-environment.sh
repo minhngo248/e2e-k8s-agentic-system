@@ -86,10 +86,11 @@ if [[ "$SUBSTRATE_INSTALLED" == true ]]; then
       --set providers.default=openAI \
       --set controller.substrate.enabled=true \
       --set controller.substrate.ateApiEndpoint=dns:///api.ate-system.svc:443 \
-      --set controller.substrate.ateApiInsecure=false \
+      --set controller.substrate.ateApiInsecure=true \
       --set substrateWorkerPool.create=true \
       --set substrateWorkerPool.replicas=3 \
       --set substrateWorkerPool.ateomImage=ghcr.io/kagent-dev/substrate/ateom-gvisor:v0.0.9
+  info "Kagent installed successfully."
 else
   error "Cannot install Kagent. Please ensure Substrate is installed."
 fi
