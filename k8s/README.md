@@ -1,5 +1,5 @@
-1. Kind cluster
-Create garage
+1. Create garage
+- Only for Kind cluster
 ```bash
 helm -n garage install garage garage/ -f values.override.yaml --create-namespace
 
@@ -16,12 +16,14 @@ kubectl -n garage exec -it sts/garage -- ./garage bucket create tourist-images
 kubectl -n garage exec -it sts/garage -- ./garage bucket allow   --read --write --key tourist-api-key   tourist-images
 ```
 
-Create `postgres` secret, `tourist-api` secret, and `agent` secret before 
+2. Deploy applications
+- For Kind cluster and GKE cluster
+- Create `postgres` secret, `tourist-api` secret, and `agent` secret before 
 deploying the application using Kustomize.
 ```bash
 k -n default create secret generic postgres --from-env-file=k8s/.env.postgres
 k -n default create secret generic tourist-api --from-env-file=k8s/.env.touristapi
-k -n default create secret generic agent --from-env-file=k8s/.env.agent
+k -n kagent create secret generic agent --from-env-file=k8s/.env.agent
 ```
 
 Then, deploy the application using Kustomize:

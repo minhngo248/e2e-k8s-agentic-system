@@ -2,10 +2,11 @@ apiVersion: kagent.dev/v1alpha2
 kind: Agent
 metadata:
   name: tourist-agent
-  namespace: default
+  namespace: kagent
 spec:
   type: BYO
-
+  description: "Tourist agent is a simple agent that can answer questions about tourist attractions 
+    and provide recommendations based on weather conditions."
   byo:
     deployment:
       image: ghcr.io/minhngo248/touristagent:0.0.1-SNAPSHOT
@@ -14,7 +15,7 @@ spec:
         - name: OPENAI_API_KEY
           valueFrom:
             secretKeyRef:
-              name: agent
+              name: kagent-openai
               key: OPENAI_API_KEY
         - name: TOURIST_API_URL
           valueFrom:

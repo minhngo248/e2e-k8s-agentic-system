@@ -3,3 +3,4 @@ kind: Kustomization
 resources:
   - tourist-api.yaml
   - tourist-agent.yaml
+  - orchestrator-agent.yaml
