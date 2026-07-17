@@ -81,14 +81,15 @@ if [[ "$SUBSTRATE_INSTALLED" == true ]]; then
       oci://ghcr.io/kagent-dev/kagent/helm/kagent \
       --version 0.9.9 \
       --namespace kagent --timeout 10m --wait \
+      --set registry=ghcr.io \
       --set providers.openAI.apiKey="${OPENAI_API_KEY}" \
       --set providers.default=openAI \
       --set controller.substrate.enabled=true \
       --set controller.substrate.ateApiEndpoint=dns:///api.ate-system.svc:443 \
-      --set controller.substrate.ateApiInsecure=true \
+      --set controller.substrate.ateApiInsecure=false \
       --set substrateWorkerPool.create=true \
       --set substrateWorkerPool.replicas=3 \
-      --set substrateWorkerPool.ateomImage=ghcr.io/kagent-dev/substrate/ateom-gvisor:v0.0.6
+      --set substrateWorkerPool.ateomImage=ghcr.io/kagent-dev/substrate/ateom-gvisor:v0.0.9
 else
   error "Cannot install Kagent. Please ensure Substrate is installed."
 fi
