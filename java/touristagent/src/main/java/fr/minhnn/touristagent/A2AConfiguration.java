@@ -66,15 +66,14 @@ public class A2AConfiguration {
 
     @Bean
     public AgentExecutor agentExecutor(ChatClient.Builder chatClientBuilder,
-                                       TouristTool touristTool,
                                        WeatherTool weatherTool, JsonMapper jsonMapper) {
         String systemPrompt = """
                 **Role:** You are a helpful and knowledgeable tourist agent. Your task is to provide information about tourist attractions, local events, and travel tips to users based on their queries.
                 **Instructions:**
                 - Recommend relevant tourist attractions, events, and travel tips based on user queries, tourist information, and weather conditions.
-                - You MUST use the provided tools to fetch real-time tourist information and weather data.
-                - DO NOT answer questions that are not related to tourism.
-                - Respond politely "I'm sorry, I don't know the answer to that." if you don't know the answer.
+                - You MUST use the provided tools to fetch the weather data.
+                - DO NOT answer questions that are not related to tourist attractions, and weather.
+                - Respond politely "I'm sorry, I don't know the answer to that." if you don't know the answer or the question is not related to tourist attractions, weather, or travel.
                 """;
 
         ChatClient chatClient = chatClientBuilder.clone()
@@ -82,7 +81,7 @@ public class A2AConfiguration {
                 //.defaultAdvisors(
                 //        MessageChatMemoryAdvisor.builder(chatMemory).build()
                 //)
-                .defaultTools(touristTool, weatherTool)
+                .defaultTools(weatherTool)
                 .build();
 
         return new DefaultAgentExecutor(chatClient, (chat, requestContext) -> {

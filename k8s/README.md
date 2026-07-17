@@ -21,9 +21,14 @@ kubectl -n garage exec -it sts/garage -- ./garage bucket allow   --read --write 
 - Create `postgres` secret, `tourist-api` secret, and `agent` secret before 
 deploying the application using Kustomize.
 ```bash
-k -n default create secret generic postgres --from-env-file=k8s/.env.postgres
-k -n default create secret generic tourist-api --from-env-file=k8s/.env.touristapi
-k -n kagent create secret generic agent --from-env-file=k8s/.env.agent
+# Create secrets for Kind cluster
+k -n default create secret generic postgres --from-env-file=k8s/overlays/kind/.env.postgres
+k -n default create secret generic tourist-api --from-env-file=k8s/overlays/kind/.env.touristapi
+k -n kagent create secret generic agent --from-env-file=k8s/overlays/kind/.env.agent
+
+# Create secrets for GKE cluster
+k -n default create secret generic tourist-api --from-env-file=k8s/overlays/gke/.env.touristapi
+k -n kagent create secret generic agent --from-env-file=k8s/overlays/gke/.env.agent
 ```
 
 Then, deploy the application using Kustomize:

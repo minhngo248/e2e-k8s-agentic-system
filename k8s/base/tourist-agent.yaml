@@ -9,7 +9,7 @@ spec:
     and provide recommendations based on weather conditions."
   byo:
     deployment:
-      image: ghcr.io/minhngo248/touristagent:0.0.1-SNAPSHOT
+      image: ghcr.io/minhngo248/touristagent:0.0.1-SNAPSHOT-no-tourist-api
       args: ["--spring.profiles.active=prod"]
       env:
         - name: OPENAI_API_KEY
