@@ -33,7 +33,7 @@ spec:
       containers:
         - image: ghcr.io/minhngo248/touristapi:0.0.1-SNAPSHOT
           name: touristapi
-          args: ["--spring.profiles.active=prod,garage"]
+          args: ["--spring.profiles.active=prod,s3"]
           envFrom:
             - secretRef:
                 name: postgres
