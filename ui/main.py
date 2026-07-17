@@ -19,10 +19,8 @@ def load_agent_card(agent_url: str):
     return fetch_agent_card(agent_url)
 
 
-def render_assistant_message(content: str, image_urls: list[str] | None = None):
+def render_assistant_message(content: str):
     st.markdown(content or "_No answer returned._")
-    if image_urls:
-        st.image(image_urls, width=240)
 
 
 # Initialize session state for chat history
@@ -54,7 +52,7 @@ else:
     for message in st.session_state.messages:
         with st.chat_message(message["role"]):
             if message["role"] == "assistant":
-                render_assistant_message(message["content"], message.get("image_urls", []))
+                render_assistant_message(message["content"])
             else:
                 st.markdown(message["content"])
 
@@ -76,13 +74,12 @@ if prompt := st.chat_input("Ask me about destinations or weather..."):
                 payload = send_message(TOURIST_AGENT_URL, prompt)
 
             response_placeholder.empty()
-            render_assistant_message(payload.answer, payload.image_urls)
+            render_assistant_message(payload.answer)
 
             # Add assistant message to chat history
             st.session_state.messages.append({
                 "role": "assistant",
                 "content": payload.answer,
-                "image_urls": payload.image_urls,
             })
 
         except Exception as e:

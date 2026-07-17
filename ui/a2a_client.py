@@ -7,7 +7,6 @@ from uuid import uuid4
 @dataclass(frozen=True)
 class AgentPayload:
     answer: str
-    image_urls: list[str]
 
 
 def normalize_agent_url(agent_url: str) -> str:
@@ -54,7 +53,6 @@ def extract_agent_payload(response: dict[str, Any]) -> AgentPayload:
 
     text_parts = _artifact_text_parts(response)
     answers: list[str] = []
-    image_urls: list[str] = []
 
     for text in text_parts:
         try:
@@ -71,11 +69,7 @@ def extract_agent_payload(response: dict[str, Any]) -> AgentPayload:
         if isinstance(answer, str) and answer.strip():
             answers.append(answer)
 
-        images = decoded.get("images", [])
-        if isinstance(images, list):
-            image_urls.extend(_image_urls_from_images(images))
-
-    return AgentPayload(answer="\n\n".join(answers).strip(), image_urls=image_urls)
+    return AgentPayload(answer="\n\n".join(answers).strip())
 
 
 def fetch_agent_card(agent_url: str) -> dict[str, Any]:
@@ -123,14 +117,3 @@ def _artifact_text_parts(response: dict[str, Any]) -> list[str]:
 
     return text_parts
 
-
-def _image_urls_from_images(images: list[Any]) -> list[str]:
-    image_urls: list[str] = []
-    for image in images:
-        if not isinstance(image, dict):
-            continue
-        urls = image.get("imageUrls", [])
-        if not isinstance(urls, list):
-            continue
-        image_urls.extend(url for url in urls if isinstance(url, str) and url)
-    return image_urls
