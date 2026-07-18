@@ -36,6 +36,15 @@ helm upgrade -i agentgateway oci://cr.agentgateway.dev/charts/agentgateway \
   --wait
 ```
 
+- Install `cloud-provider-kind` inside your machine
+```bash
+go install sigs.k8s.io/cloud-provider-kind@latest
+sudo install ~/go/bin/cloud-provider-kind /usr/local/bin
+
+# Then run
+cloud-provider-kind --gateway-channel standard
+```
+
 - Install Gateway referencing to `cloud-provider-kind` GatewayClass
 ```bash
 kubectl apply -f- <<EOF
@@ -55,6 +64,7 @@ spec:
         from: All
 EOF
 ```
+
 3. Deploy applications
 - For Kind cluster and GKE cluster
 - Create `postgres` secret, `tourist-api` secret, and `agent` secret before 

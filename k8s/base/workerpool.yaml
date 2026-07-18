@@ -21,7 +21,10 @@ spec:
     - matches:
         - path:
             type: PathPrefix
-            value: /hello1
+            value: /no-scale
+          headers:
+            - name: Agent
+              value: hello1
       filters:
         - type: URLRewrite
           urlRewrite:
@@ -36,7 +39,10 @@ spec:
     - matches:
         - path:
             type: PathPrefix
-            value: /hello2
+            value: /no-scale
+          headers:
+            - name: Agent
+              value: hello2
       filters:
         - type: URLRewrite
           urlRewrite:
@@ -51,7 +57,10 @@ spec:
     - matches:
         - path:
             type: PathPrefix
-            value: /hello3
+            value: /no-scale
+          headers:
+            - name: Agent
+              value: hello3
       filters:
         - type: URLRewrite
           urlRewrite:
@@ -66,7 +75,10 @@ spec:
     - matches:
         - path:
             type: PathPrefix
-            value: /hello4
+            value: /no-scale
+          headers:
+            - name: Agent
+              value: hello4
       filters:
         - type: URLRewrite
           urlRewrite:
