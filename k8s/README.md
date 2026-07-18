@@ -16,14 +16,58 @@ kubectl -n garage exec -it sts/garage -- ./garage bucket create tourist-images
 kubectl -n garage exec -it sts/garage -- ./garage bucket allow   --read --write --key tourist-api-key   tourist-images
 ```
 
-2. Deploy applications
+2. Gateway API and agentgateway
+- For Kind cluster and GKE cluster
+```bash
+# Install Gateway API
+kkubectl apply --server-side --force-conflicts -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.5.0/standard-install.yaml
+
+# Install agentgateway CRDs
+helm upgrade -i agentgateway-crds oci://cr.agentgateway.dev/charts/agentgateway-crds \
+--create-namespace --namespace agentgateway-system \
+--version v1.3.1 \
+--set controller.image.pullPolicy=Always
+
+# Install agentgateway control plane
+helm upgrade -i agentgateway oci://cr.agentgateway.dev/charts/agentgateway \
+  --namespace agentgateway-system \
+  --version v1.3.1 \
+  --set controller.image.pullPolicy=Always \
+  --wait
+```
+
+- Install Gateway referencing to `cloud-provider-kind` GatewayClass
+```bash
+kubectl apply -f- <<EOF
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: agentgateway-proxy
+  namespace: agentgateway-system
+spec:
+  gatewayClassName: agentgateway # cloud-provider-kind
+  listeners:
+  - protocol: HTTP
+    port: 80
+    name: http
+    allowedRoutes:
+      namespaces:
+        from: All
+EOF
+```
+3. Deploy applications
 - For Kind cluster and GKE cluster
 - Create `postgres` secret, `tourist-api` secret, and `agent` secret before 
 deploying the application using Kustomize.
 ```bash
-k -n default create secret generic postgres --from-env-file=k8s/.env.postgres
-k -n default create secret generic tourist-api --from-env-file=k8s/.env.touristapi
-k -n kagent create secret generic agent --from-env-file=k8s/.env.agent
+# Create secrets for Kind cluster
+k -n default create secret generic postgres --from-env-file=k8s/overlays/kind/.env.postgres
+k -n default create secret generic tourist-api --from-env-file=k8s/overlays/kind/.env.touristapi
+k -n kagent create secret generic agent --from-env-file=k8s/overlays/kind/.env.agent
+
+# Create secrets for GKE cluster
+k -n default create secret generic tourist-api --from-env-file=k8s/overlays/gke/.env.touristapi
+k -n kagent create secret generic agent --from-env-file=k8s/overlays/gke/.env.agent
 ```
 
 Then, deploy the application using Kustomize:
