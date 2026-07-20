@@ -18,7 +18,7 @@ spec:
       filters:
         - type: URLRewrite
           urlRewrite:
-            hostname: hello11.ate-golden.actors.resources.substrate.ate.dev
+            hostname: hello11.scale.actors.resources.substrate.ate.dev
             path:
               type: ReplacePrefixMatch
               replacePrefixMatch: /
@@ -36,7 +36,7 @@ spec:
       filters:
         - type: URLRewrite
           urlRewrite:
-            hostname: hello12.ate-golden.actors.resources.substrate.ate.dev
+            hostname: hello12.scale.actors.resources.substrate.ate.dev
             path:
               type: ReplacePrefixMatch
               replacePrefixMatch: /
