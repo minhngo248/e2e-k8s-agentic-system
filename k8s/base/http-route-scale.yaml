@@ -1,7 +1,7 @@
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
-  name: scale-route
+  name: http-route-scale
   namespace: kagent
 spec:
   parentRefs:
@@ -14,11 +14,11 @@ spec:
             value: /scale
           headers:
             - name: Agent
-              value: hello11
+              value: dummy11
       filters:
         - type: URLRewrite
           urlRewrite:
-            hostname: hello11.scale.actors.resources.substrate.ate.dev
+            hostname: dummy11.scale.actors.resources.substrate.ate.dev
             path:
               type: ReplacePrefixMatch
               replacePrefixMatch: /
@@ -32,11 +32,11 @@ spec:
             value: /scale
           headers:
             - name: Agent
-              value: hello12
+              value: dummy12
       filters:
         - type: URLRewrite
           urlRewrite:
-            hostname: hello12.scale.actors.resources.substrate.ate.dev
+            hostname: dummy12.scale.actors.resources.substrate.ate.dev
             path:
               type: ReplacePrefixMatch
               replacePrefixMatch: /

@@ -1,0 +1,9 @@
+apiVersion: agentgateway.dev/v1alpha1
+kind: AgentgatewayBackend
+metadata:
+  name: atenet-router-backend
+  namespace: kagent
+spec:
+  static:
+    host: atenet-router.ate-system.svc.cluster.local
+    port: 80

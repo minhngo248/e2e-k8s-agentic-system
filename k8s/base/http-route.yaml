@@ -1,17 +1,7 @@
-apiVersion: agentgateway.dev/v1alpha1
-kind: AgentgatewayBackend
-metadata:
-  name: atenet-router-backend
-  namespace: kagent
-spec:
-  static:
-    host: atenet-router.ate-system.svc.cluster.local
-    port: 80
----
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
-  name: no-scale-route
+  name: http-route
   namespace: kagent
 spec:
   parentRefs:
@@ -24,11 +14,11 @@ spec:
             value: /no-scale
           headers:
             - name: Agent
-              value: hello1
+              value: dummy1
       filters:
         - type: URLRewrite
           urlRewrite:
-            hostname: hello1.ate-golden.actors.resources.substrate.ate.dev
+            hostname: dummy1.no-scale.actors.resources.substrate.ate.dev
             path:
               type: ReplacePrefixMatch
               replacePrefixMatch: /
@@ -42,11 +32,11 @@ spec:
             value: /no-scale
           headers:
             - name: Agent
-              value: hello2
+              value: dummy2
       filters:
         - type: URLRewrite
           urlRewrite:
-            hostname: hello2.ate-golden.actors.resources.substrate.ate.dev
+            hostname: dummy2.no-scale.actors.resources.substrate.ate.dev
             path:
               type: ReplacePrefixMatch
               replacePrefixMatch: /
@@ -60,11 +50,11 @@ spec:
             value: /no-scale
           headers:
             - name: Agent
-              value: hello3
+              value: dummy3
       filters:
         - type: URLRewrite
           urlRewrite:
-            hostname: hello3.ate-golden.actors.resources.substrate.ate.dev
+            hostname: dummy3.no-scale.actors.resources.substrate.ate.dev
             path:
               type: ReplacePrefixMatch
               replacePrefixMatch: /
@@ -78,11 +68,11 @@ spec:
             value: /no-scale
           headers:
             - name: Agent
-              value: hello4
+              value: dummy4
       filters:
         - type: URLRewrite
           urlRewrite:
-            hostname: hello4.ate-golden.actors.resources.substrate.ate.dev
+            hostname: dummy4.no-scale.actors.resources.substrate.ate.dev
             path:
               type: ReplacePrefixMatch
               replacePrefixMatch: /

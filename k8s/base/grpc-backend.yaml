@@ -1,0 +1,9 @@
+apiVersion: agentgateway.dev/v1alpha1
+kind: AgentgatewayBackend
+metadata:
+  name: api-backend
+  namespace: kagent
+spec:
+  static:
+    host: api.ate-system.svc.cluster.local
+    port: 443

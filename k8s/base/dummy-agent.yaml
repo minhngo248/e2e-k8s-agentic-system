@@ -1,7 +1,7 @@
 apiVersion: kagent.dev/v1alpha2
 kind: SandboxAgent
 metadata:
-  name: hello-substrate
+  name: dummy
   namespace: kagent
 spec:
   type: Declarative
@@ -11,9 +11,9 @@ spec:
     modelConfig: default-model-config
     systemMessage: |
       You are a friendly assistant living inside an Agent Substrate sandbox.
-      When asked who you are, say "I am hello-substrate, a Go ADK declarative
+      When asked who you are, say "I am dummy, a Go ADK declarative
       agent running inside a gVisor actor."
   substrate:
     workerPoolRef:
-      name: kagent-default
+      name: no-scale
   platform: substrate

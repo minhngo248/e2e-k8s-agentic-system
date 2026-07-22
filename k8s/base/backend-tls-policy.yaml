@@ -1,0 +1,16 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: BackendTLSPolicy
+metadata:
+  name: ate-api-backend-tls
+  namespace: ate-system
+spec:
+  targetRefs:
+    - group: ""
+      kind: Service
+      name: api
+  validation:
+    hostname: api.ate-system.svc.cluster.local
+    caCertificateRefs:
+      - group: ""
+        kind: ConfigMap
+        name: ateapi-ca

@@ -1,0 +1,89 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: GRPCRoute
+metadata:
+  name: api-ate-control-route
+  namespace: kagent
+spec:
+  parentRefs:
+    - name: agentgateway-proxy
+      namespace: agentgateway-system
+  rules:
+    - matches:
+      - method:
+          service: grpc.reflection.v1.ServerReflection
+          method: ServerReflectionInfo
+      backendRefs:
+        - name: api
+          namespace: ate-system
+          port: 443
+    - matches:
+      - method:
+          service: grpc.reflection.v1alpha.ServerReflection
+          method: ServerReflectionInfo
+      backendRefs:
+        - name: api
+          namespace: ate-system
+          port: 443
+    - matches:
+      - method:
+          service: ateapi.Control
+          method: ListActors
+        headers:
+          - name: Authorization
+            type: RegularExpression
+            value: ^Bearer .+
+      backendRefs:
+        - name: api
+          namespace: ate-system
+          port: 443
+    - matches:
+      - method:
+          service: ateapi.Control
+          method: ListWorkers
+        headers:
+          - name: Authorization
+            type: RegularExpression
+            value: ^Bearer .+
+      backendRefs:
+        - name: api
+          namespace: ate-system
+          port: 443
+    - matches:
+      - method:
+          service: ateapi.Control
+          method: ResumeActor
+        headers:
+          - name: Authorization
+            type: RegularExpression
+            value: ^Bearer .+
+      backendRefs:
+        - name: api
+          namespace: ate-system
+          port: 443
+    - matches:
+      - method:
+          service: ateapi.Control
+          method: SuspendActor
+        headers:
+          - name: Authorization
+            type: RegularExpression
+            value: ^Bearer .+
+      backendRefs:
+        - name: api
+          namespace: ate-system
+          port: 443
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: ReferenceGrant
+metadata:
+  name: allow-kagent-grpcroute-to-ate-api
+  namespace: ate-system
+spec:
+  from:
+    - group: gateway.networking.k8s.io
+      kind: GRPCRoute
+      namespace: kagent
+  to:
+    - group: ""
+      kind: Service
+      name: api
